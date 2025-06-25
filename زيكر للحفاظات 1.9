@@ -1,11 +1,10 @@
 --[[
-    سكربت زيكر للحفاظات (الإصدار 1.9)
-    تحسينات نظام التصويب التلقائي:
-    1. دائرة تصويب أصغر حجمًا (150 بكسل)
-    2. تحكم سلس بالكاميرا أثناء التصويب
-    3. محاذاة دقيقة لنقطة التصويب
-    4. تحديد مدى استهداف (400 متر)
-    5. إضافة خيارات متقدمة للتحكم
+    🇭🇺زيكر للحفاظات - 1.9 🇮🇶
+    تحسينات نظام التصويب:
+    1. نظام تصويب جديد "براس فادي الوصخ"
+    2. تتبع ذكي مع تنبؤ حركة الأهداف
+    3. فحص الرؤية بأشعة التأكد
+    4. دائرة تصويب أرجوانية مميزة
 --]]
 
 -- خدمات الروبلكس الأساسية
@@ -55,7 +54,7 @@ Circle.Parent = ZikerUI
 -- إنشاء واجهة المستخدم
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 300, 0, 280) -- زيادة الارتفاع لإضافة خيارات
+MainFrame.Size = UDim2.new(0, 300, 0, 230)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -82,7 +81,7 @@ local Title = Instance.new("TextLabel")
 Title.Name = "Title"
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Title.Text = "زيكر للحفاظات | الإصدار 1.9"
+Title.Text = "🇭🇺زيكر للحفاظات - 1.9 🇮🇶"
 Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
@@ -96,10 +95,10 @@ TitleCorner.Parent = Title
 -- زر الرؤية الليلية
 local NightVisionButton = Instance.new("TextButton")
 NightVisionButton.Name = "NightVision"
-NightVisionButton.Size = UDim2.new(0.9, 0, 0, 35)
-NightVisionButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+NightVisionButton.Size = UDim2.new(0.9, 0, 0, 40)
+NightVisionButton.Position = UDim2.new(0.05, 0, 0.25, 0)
 NightVisionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-NightVisionButton.Text = "تريد تشوف بليل ؟: غير مفعل"
+NightVisionButton.Text = "تريد تشوف بليل؟: غير مفعل"
 NightVisionButton.TextColor3 = Color3.new(1, 1, 1)
 NightVisionButton.Font = Enum.Font.Gotham
 NightVisionButton.TextSize = 14
@@ -107,16 +106,16 @@ NightVisionButton.Parent = MainFrame
 
 -- زاوية مستديرة للزر
 local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.CornerRadius = UDim.new(0, 10)
 ButtonCorner.Parent = NightVisionButton
 
--- زر التصويب التلقائي (Aim Bot)
+-- زر التصويب التلقائي
 local AimBotButton = Instance.new("TextButton")
 AimBotButton.Name = "AimBot"
-AimBotButton.Size = UDim2.new(0.9, 0, 0, 35)
-AimBotButton.Position = UDim2.new(0.05, 0, 0.35, 0)
+AimBotButton.Size = UDim2.new(0.9, 0, 0, 40)
+AimBotButton.Position = UDim2.new(0.05, 0, 0.55, 0)
 AimBotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-AimBotButton.Text = "ايم بوت لعيون زيكر الوصخ: غير مفعل"
+AimBotButton.Text = "تصويب براس فادي الوصخ: غير مفعل"
 AimBotButton.TextColor3 = Color3.new(1, 1, 1)
 AimBotButton.Font = Enum.Font.Gotham
 AimBotButton.TextSize = 14
@@ -124,66 +123,32 @@ AimBotButton.Parent = MainFrame
 
 -- زاوية مستديرة للزر
 local AimBotCorner = Instance.new("UICorner")
-AimBotCorner.CornerRadius = UDim.new(0, 8)
+AimBotCorner.CornerRadius = UDim.new(0, 10)
 AimBotCorner.Parent = AimBotButton
-
--- خيارات متقدمة
-local SmoothLabel = Instance.new("TextLabel")
-SmoothLabel.Name = "SmoothLabel"
-SmoothLabel.Size = UDim2.new(0.8, 0, 0, 25)
-SmoothLabel.Position = UDim2.new(0.1, 0, 0.55, 0)
-SmoothLabel.BackgroundTransparency = 1
-SmoothLabel.Text = "سلاسة التصويب: 0.05"
-SmoothLabel.TextColor3 = Color3.new(1, 1, 1)
-SmoothLabel.Font = Enum.Font.Gotham
-SmoothLabel.TextSize = 14
-SmoothLabel.TextXAlignment = Enum.TextXAlignment.Left
-SmoothLabel.Parent = MainFrame
-
-local SmoothSlider = Instance.new("TextButton")
-SmoothSlider.Name = "SmoothSlider"
-SmoothSlider.Size = UDim2.new(0.8, 0, 0, 20)
-SmoothSlider.Position = UDim2.new(0.1, 0, 0.62, 0)
-SmoothSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-SmoothSlider.Text = ""
-SmoothSlider.Parent = MainFrame
-
-local SmoothFill = Instance.new("Frame")
-SmoothFill.Name = "SmoothFill"
-SmoothFill.Size = UDim2.new(0.5, 0, 1, 0)
-SmoothFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-SmoothFill.BorderSizePixel = 0
-SmoothFill.Parent = SmoothSlider
-
-local SmoothCorner = Instance.new("UICorner")
-SmoothCorner.CornerRadius = UDim.new(0, 4)
-SmoothCorner.Parent = SmoothSlider
-
-local DistanceLabel = Instance.new("TextLabel")
-DistanceLabel.Name = "DistanceLabel"
-DistanceLabel.Size = UDim2.new(0.8, 0, 0, 25)
-DistanceLabel.Position = UDim2.new(0.1, 0, 0.7, 0)
-DistanceLabel.BackgroundTransparency = 1
-DistanceLabel.Text = "مدى الاستهداف: 400 متر"
-DistanceLabel.TextColor3 = Color3.new(1, 1, 1)
-DistanceLabel.Font = Enum.Font.Gotham
-DistanceLabel.TextSize = 14
-DistanceLabel.TextXAlignment = Enum.TextXAlignment.Left
-DistanceLabel.Parent = MainFrame
 
 -- متغيرات النظام
 local isUIOpen = false
 local isDragging = false
 local dragStartPos, frameStartPos
 local isNightVisionActive = false
-local isAimBotActive = false
 local lastMemoryClean = os.clock()
 local nightVisionLoop = nil
-local aimBotConnection = nil
-local aimCircleFrame = nil
-local smoothness = 0.05 -- سلاسة التصويب
-local maxDistance = 400 -- مدى الاستهداف بالأمتار
-local targetIndicator = nil -- مؤشر الهدف
+
+-- نظام تصويب براس فادي الوصخ
+local fov = 136
+local isAiming = false
+local validNPCs = {}
+local raycastParams = RaycastParams.new()
+raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+-- دائرة تصويب أرجوانية
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = false
+FOVring.Thickness = 2
+FOVring.Color = Color3.fromRGB(128, 0, 128)
+FOVring.Filled = false
+FOVring.Radius = fov
+FOVring.Position = Camera.ViewportSize / 2
 
 -- وظيفة السحب للهواتف
 local function handleTouchInput(input, processed)
@@ -215,7 +180,7 @@ local function handleTouchInput(input, processed)
                     TweenService:Create(
                         MainFrame,
                         TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                        {Size = UDim2.new(0, 300, 0, 280)}
+                        {Size = UDim2.new(0, 300, 0, 230)}
                     ):Play()
                 else
                     local closeTween = TweenService:Create(
@@ -313,187 +278,177 @@ NightVisionButton.Activated:Connect(function()
         Lighting.FogEnd = originalFogEnd
         Lighting.FogStart = originalFogStart
         
-        NightVisionButton.Text = "تريد تشوف بليل ؟: غير مفعل"
+        NightVisionButton.Text = "تريد تشوف بليل؟: غير مفعل"
         NightVisionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     end
 end)
 
--- نظام دائرة التصويب الدقيقة
-local function CreateAimCircle()
-    -- إنشاء واجهة بديلة للدائرة
-    local circleGui = Instance.new("ScreenGui")
-    circleGui.Name = "AimCircleGui"
-    circleGui.ResetOnSpawn = false
-    circleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    circleGui.Parent = PlayerGui
+-- =============================================
+-- نظام تصويب براس فادي الوصخ (نسخة مطورة)
+-- =============================================
 
-    local circleFrame = Instance.new("Frame")
-    circleFrame.Name = "AimCircle"
-    circleFrame.Size = UDim2.new(0, 150, 0, 150) -- حجم أصغر (150x150)
-    circleFrame.Position = UDim2.new(0.5, -75, 0.5, -75) -- مركز الشاشة
-    circleFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    circleFrame.BackgroundTransparency = 1
-    circleFrame.BorderSizePixel = 0
-    circleFrame.ZIndex = 5
-    circleFrame.Parent = circleGui
-
-    -- جعل الإطار دائري
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = circleFrame
-
-    -- إضافة حدود للدائرة
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(255, 255, 255) -- أبيض
-    stroke.Thickness = 2
-    stroke.Transparency = 0.4 -- شفافية 60%
-    stroke.Parent = circleFrame
-
-    return circleGui
+-- تحديد إذا كان النموذج زومبي
+local function isNPC(obj)
+    return obj:IsA("Model") 
+        and obj:FindFirstChild("Humanoid")
+        and obj.Humanoid.Health > 0
+        and obj:FindFirstChild("Head")
+        and obj:FindFirstChild("HumanoidRootPart")
+        and not Players:GetPlayerFromCharacter(obj)
 end
 
--- مؤشر الهدف
-local function CreateTargetIndicator()
-    local indicator = Instance.new("Frame")
-    indicator.Name = "TargetIndicator"
-    indicator.Size = UDim2.new(0, 10, 0, 10)
-    indicator.AnchorPoint = Vector2.new(0.5, 0.5)
-    indicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    indicator.BorderSizePixel = 0
-    indicator.ZIndex = 6
-    indicator.Visible = false
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = indicator
-    
-    indicator.Parent = PlayerGui
-    return indicator
+-- تحديث قائمة الزومبي
+local function updateNPCs()
+    local tempTable = {}
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if isNPC(obj) then
+            tempTable[obj] = true
+        end
+    end
+    for i = #validNPCs, 1, -1 do
+        if not tempTable[validNPCs[i]] then
+            table.remove(validNPCs, i)
+        end
+    end
+    for obj in pairs(tempTable) do
+        if not table.find(validNPCs, obj) then
+            table.insert(validNPCs, obj)
+        end
+    end
 end
 
--- تحديد أقرب هدف داخل الدائرة
-local function GetClosestTarget()
-    local closestTarget = nil
-    local closestDistance = 75 -- نصف قطر الدائرة
-    local playerPosition = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-    
-    if not playerPosition then return nil end
-    
-    -- مسح جميع النماذج في workspace
-    for _, model in ipairs(Workspace:GetDescendants()) do
-        -- التحقق إذا كان النموذج يحتوي على Humanoid و Head
-        if model:IsA("Model") and model:FindFirstChild("Humanoid") and model:FindFirstChild("Head") then
-            -- استبعاد اللاعبين الحقيقيين (التركيز على الزومبي)
-            if not Players:GetPlayerFromCharacter(model) then
-                local humanoid = model.Humanoid
-                local head = model.Head
-                
-                -- التحقق إذا كان الزومبي على قيد الحياة
-                if humanoid.Health > 0 then
-                    -- حساب المسافة إلى اللاعب
-                    local distance = (head.Position - playerPosition.Position).Magnitude
-                    
-                    -- التحقق من المدى المسموح (400 متر)
-                    if distance <= maxDistance then
-                        -- حساب موضع الرأس على الشاشة
-                        local headScreenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
-                        
-                        if onScreen then
-                            local screenPos = Vector2.new(headScreenPos.X, headScreenPos.Y)
-                            local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
-                            local distanceToCenter = (center - screenPos).Magnitude
-                            
-                            -- التحقق إذا كان الهدف داخل الدائرة وأقرب هدف
-                            if distanceToCenter <= 75 and (not closestTarget or distanceToCenter < closestDistance) then
-                                closestDistance = distanceToCenter
-                                closestTarget = head
-                            end
-                        end
-                    end
+-- إضافة زومبي جديد
+local function handleDescendant(descendant)
+    if isNPC(descendant) then
+        table.insert(validNPCs, descendant)
+        local humanoid = descendant:WaitForChild("Humanoid")
+        humanoid.Destroying:Connect(function()
+            for i = #validNPCs, 1, -1 do
+                if validNPCs[i] == descendant then
+                    table.remove(validNPCs, i)
+                    break
+                end
+            end
+        end)
+    end
+end
+
+-- تحديث رسومات التصويب
+local function updateDrawings()
+    FOVring.Position = Camera.ViewportSize / 2
+    FOVring.Radius = fov * (Camera.ViewportSize.Y / 1080)
+end
+
+-- تنبؤ حركة الهدف
+local function predictPos(target)
+    local rootPart = target:FindFirstChild("HumanoidRootPart")
+    local head = target:FindFirstChild("Head")
+    if not rootPart or not head then
+        return head and head.Position or rootPart and rootPart.Position
+    end
+    local velocity = rootPart.Velocity
+    local predictionTime = 0.02
+    local basePosition = rootPart.Position + velocity * predictionTime
+    local headOffset = head.Position - rootPart.Position
+    return basePosition + headOffset
+end
+
+-- الحصول على أفضل هدف
+local function getTarget()
+    local nearest = nil
+    local minDistance = math.huge
+    local viewportCenter = Camera.ViewportSize / 2
+    raycastParams.FilterDescendantsInstances = {Player.Character}
+    for _, npc in ipairs(validNPCs) do
+        local predictedPos = predictPos(npc)
+        local screenPos, visible = Camera:WorldToViewportPoint(predictedPos)
+        if visible and screenPos.Z > 0 then
+            local ray = Workspace:Raycast(
+                Camera.CFrame.Position,
+                (predictedPos - Camera.CFrame.Position).Unit * 1000,
+                raycastParams
+            )
+            if ray and ray.Instance:IsDescendantOf(npc) then
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
+                if distance < minDistance and distance < fov then
+                    minDistance = distance
+                    nearest = npc
                 end
             end
         end
     end
-    
-    return closestTarget
+    return nearest
 end
 
--- تفعيل/إلغاء التصويب التلقائي
-AimBotButton.Activated:Connect(function()
-    isAimBotActive = not isAimBotActive
-    
-    if isAimBotActive then
-        AimBotButton.Text = "التصويب التلقائي: مفعل"
-        AimBotButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
-        
-        -- إنشاء دائرة التصويب ومؤشر الهدف
-        aimCircleFrame = CreateAimCircle()
-        targetIndicator = CreateTargetIndicator()
-        
-        -- بدء نظام التصويب
-        aimBotConnection = RunService.RenderStepped:Connect(function()
-            -- البحث عن أقرب هدف (زومبي)
-            local targetHead = GetClosestTarget()
-            
-            if targetHead then
-                -- توجيه الكاميرا نحو رأس الهدف بسلاسة
-                local currentCFrame = Camera.CFrame
-                local targetPosition = targetHead.Position
-                local direction = (targetPosition - currentCFrame.Position).Unit
-                local targetCFrame = CFrame.new(currentCFrame.Position, currentCFrame.Position + direction)
-                
-                Camera.CFrame = currentCFrame:Lerp(targetCFrame, smoothness)
-                
-                -- تحديث مؤشر الهدف
-                local headScreenPos, onScreen = Camera:WorldToViewportPoint(targetPosition)
-                if onScreen then
-                    targetIndicator.Position = UDim2.new(0, headScreenPos.X, 0, headScreenPos.Y)
-                    targetIndicator.Visible = true
-                else
-                    targetIndicator.Visible = false
-                end
-            else
-                -- إخفاء مؤشر الهدف إذا لم يكن هناك هدف
-                if targetIndicator then
-                    targetIndicator.Visible = false
-                end
-            end
-        end)
-    else
-        AimBotButton.Text = "التصويب التلقائي: غير مفعل"
-        AimBotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        
-        -- إيقاف نظام التصويب
-        if aimBotConnection then
-            aimBotConnection:Disconnect()
-            aimBotConnection = nil
-        end
-        
-        -- إزالة دائرة التصويب ومؤشر الهدف
-        if aimCircleFrame then
-            aimCircleFrame:Destroy()
-            aimCircleFrame = nil
-        end
-        if targetIndicator then
-            targetIndicator:Destroy()
-            targetIndicator = nil
+-- توجيه التصويب
+local function aim(targetPosition)
+    local currentCF = Camera.CFrame
+    local targetDirection = (targetPosition - currentCF.Position).Unit
+    local smoothFactor = 0.581
+    local newLookVector = currentCF.LookVector:Lerp(targetDirection, smoothFactor)
+    Camera.CFrame = CFrame.new(currentCF.Position, currentCF.Position + newLookVector)
+end
+
+-- تفعيل/إلغاء التصويب
+local function toggleAimbot()
+    isAiming = not isAiming
+    FOVring.Visible = isAiming
+    AimBotButton.Text = "تصويب براس فادي الوصخ: " .. (isAiming and "مفعل" or "غير مفعل")
+    AimBotButton.TextColor3 = isAiming and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
+    AimBotButton.BackgroundColor3 = isAiming and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(50, 50, 50)
+end
+
+-- حدث تفعيل زر التصويب
+AimBotButton.Activated:Connect(toggleAimbot)
+
+-- مفاتيح الاختصار
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.T then
+        toggleAimbot()
+    end
+end)
+
+-- تحديث مستمر
+local lastUpdate = 0
+local UPDATE_INTERVAL = 0.4
+
+RunService.Heartbeat:Connect(function(dt)
+    updateDrawings()
+    lastUpdate = lastUpdate + dt
+    if lastUpdate >= UPDATE_INTERVAL then
+        updateNPCs()
+        lastUpdate = 0
+    end
+    if isAiming then
+        local target = getTarget()
+        if target then
+            local predictedPosition = predictPos(target)
+            aim(predictedPosition)
         end
     end
 end)
 
--- تحديث شريط سلاسة التصويب
-SmoothSlider.MouseButton1Down:Connect(function()
-    local mouseX = UserInputService:GetMouseLocation().X
-    local sliderAbsPos = SmoothSlider.AbsolutePosition.X
-    local sliderWidth = SmoothSlider.AbsoluteSize.X
-    local relativeX = math.clamp(mouseX - sliderAbsPos, 0, sliderWidth)
-    
-    local fillRatio = relativeX / sliderWidth
-    SmoothFill.Size = UDim2.new(fillRatio, 0, 1, 0)
-    
-    -- تحديث قيمة السلاسة (0.01 إلى 0.2)
-    smoothness = 0.01 + (fillRatio * 0.19)
-    SmoothLabel.Text = string.format("سلاسة التصويب: %.2f", smoothness)
+-- إعداد أولي
+updateNPCs()
+
+-- أحداث تحديث الزومبي
+Workspace.DescendantAdded:Connect(handleDescendant)
+Workspace.DescendantRemoved:Connect(function(descendant)
+    if isNPC(descendant) then
+        for i = #validNPCs, 1, -1 do
+            if validNPCs[i] == descendant then
+                table.remove(validNPCs, i)
+                break
+            end
+        end
+    end
+end)
+
+-- تنظيف عند الخروج
+Players.PlayerRemoving:Connect(function(leavingPlayer)
+    if leavingPlayer == Player then
+        FOVring:Remove()
+    end
 end)
 
 -- منظف ذاكرة متطور (لا يؤثر على الوظائف)
@@ -502,7 +457,7 @@ local function SmartMemoryCleaner()
         task.wait(180) -- تنظيف الذاكرة كل 3 دقائق
         
         -- تجنب التنظيف أثناء تفعيل الميزات
-        if not isNightVisionActive and not isAimBotActive then
+        if not isNightVisionActive then
             -- تنظيف الذاكرة فقط عندما لا تكون الميزات نشطة
             collectgarbage("collect")
             lastMemoryClean = os.clock()
@@ -524,25 +479,6 @@ task.spawn(SmartMemoryCleaner)
 Player.CharacterAdded:Connect(function()
     MainFrame.Visible = false
     isUIOpen = false
-    
-    -- إعادة تعيين التصويب التلقائي
-    if isAimBotActive then
-        isAimBotActive = false
-        if aimBotConnection then
-            aimBotConnection:Disconnect()
-            aimBotConnection = nil
-        end
-        if aimCircleFrame then
-            aimCircleFrame:Destroy()
-            aimCircleFrame = nil
-        end
-        if targetIndicator then
-            targetIndicator:Destroy()
-            targetIndicator = nil
-        end
-        AimBotButton.Text = "ايم بوت لعيون زيكر الوصخ: غير مفعل"
-        AimBotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    end
 end)
 
 -- تحسينات للأداء على الهواتف
@@ -554,5 +490,5 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- رسالة تفعيل
-print("تم تحميل سكربت زيكر للحفاظات | الإصدار 1.9")
-print("✅ نظام التصويب التلقائي محسّن!")
+print("تم تحميل سكربت 🇭🇺زيكر للحفاظات - 1.9 🇮🇶")
+print("✅ نظام تصويب براس فادي الوصخ جاهز!")
