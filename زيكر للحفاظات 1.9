@@ -1,0 +1,558 @@
+--[[
+    سكربت زيكر للحفاظات (الإصدار 1.9)
+    تحسينات نظام التصويب التلقائي:
+    1. دائرة تصويب أصغر حجمًا (150 بكسل)
+    2. تحكم سلس بالكاميرا أثناء التصويب
+    3. محاذاة دقيقة لنقطة التصويب
+    4. تحديد مدى استهداف (400 متر)
+    5. إضافة خيارات متقدمة للتحكم
+--]]
+
+-- خدمات الروبلكس الأساسية
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+-- متغيرات اللاعب
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local Camera = Workspace.CurrentCamera
+
+-- إنشاء واجهة المستخدم الرئيسية
+local ZikerUI = Instance.new("ScreenGui")
+ZikerUI.Name = "ZikerPreservationV9"
+ZikerUI.ResetOnSpawn = false
+ZikerUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ZikerUI.Parent = PlayerGui
+
+-- إنشاء الدائرة السوداء
+local Circle = Instance.new("Frame")
+Circle.Name = "DragCircle"
+Circle.Size = UDim2.new(0, 45, 0, 45)
+Circle.Position = UDim2.new(0, 20, 0.5, 0)
+Circle.AnchorPoint = Vector2.new(0, 0.5)
+Circle.BackgroundColor3 = Color3.new(0, 0, 0)
+Circle.BorderSizePixel = 0
+Circle.ZIndex = 10
+
+-- جعل الدائرة مستديرة
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = Circle
+
+-- إضافة ظل للدائرة
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.new(1, 1, 1)
+UIStroke.Thickness = 1.5
+UIStroke.Parent = Circle
+
+-- إضافة الدائرة إلى الواجهة
+Circle.Parent = ZikerUI
+
+-- إنشاء واجهة المستخدم
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 300, 0, 280) -- زيادة الارتفاع لإضافة خيارات
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Visible = false
+
+-- زوايا مستديرة للواجهة
+local FrameCorner = Instance.new("UICorner")
+FrameCorner.CornerRadius = UDim.new(0, 12)
+FrameCorner.Parent = MainFrame
+
+-- ظل للواجهة
+local FrameShadow = Instance.new("UIStroke")
+FrameShadow.Color = Color3.fromRGB(70, 70, 70)
+FrameShadow.Thickness = 2
+FrameShadow.Parent = MainFrame
+
+-- إضافة الواجهة إلى الشاشة
+MainFrame.Parent = ZikerUI
+
+-- عناصر الواجهة
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Title.Text = "زيكر للحفاظات | الإصدار 1.9"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.Parent = MainFrame
+
+-- زاوية مستديرة للعنوان
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = Title
+
+-- زر الرؤية الليلية
+local NightVisionButton = Instance.new("TextButton")
+NightVisionButton.Name = "NightVision"
+NightVisionButton.Size = UDim2.new(0.9, 0, 0, 35)
+NightVisionButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+NightVisionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+NightVisionButton.Text = "تريد تشوف بليل ؟: غير مفعل"
+NightVisionButton.TextColor3 = Color3.new(1, 1, 1)
+NightVisionButton.Font = Enum.Font.Gotham
+NightVisionButton.TextSize = 14
+NightVisionButton.Parent = MainFrame
+
+-- زاوية مستديرة للزر
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.Parent = NightVisionButton
+
+-- زر التصويب التلقائي (Aim Bot)
+local AimBotButton = Instance.new("TextButton")
+AimBotButton.Name = "AimBot"
+AimBotButton.Size = UDim2.new(0.9, 0, 0, 35)
+AimBotButton.Position = UDim2.new(0.05, 0, 0.35, 0)
+AimBotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+AimBotButton.Text = "ايم بوت لعيون زيكر الوصخ: غير مفعل"
+AimBotButton.TextColor3 = Color3.new(1, 1, 1)
+AimBotButton.Font = Enum.Font.Gotham
+AimBotButton.TextSize = 14
+AimBotButton.Parent = MainFrame
+
+-- زاوية مستديرة للزر
+local AimBotCorner = Instance.new("UICorner")
+AimBotCorner.CornerRadius = UDim.new(0, 8)
+AimBotCorner.Parent = AimBotButton
+
+-- خيارات متقدمة
+local SmoothLabel = Instance.new("TextLabel")
+SmoothLabel.Name = "SmoothLabel"
+SmoothLabel.Size = UDim2.new(0.8, 0, 0, 25)
+SmoothLabel.Position = UDim2.new(0.1, 0, 0.55, 0)
+SmoothLabel.BackgroundTransparency = 1
+SmoothLabel.Text = "سلاسة التصويب: 0.05"
+SmoothLabel.TextColor3 = Color3.new(1, 1, 1)
+SmoothLabel.Font = Enum.Font.Gotham
+SmoothLabel.TextSize = 14
+SmoothLabel.TextXAlignment = Enum.TextXAlignment.Left
+SmoothLabel.Parent = MainFrame
+
+local SmoothSlider = Instance.new("TextButton")
+SmoothSlider.Name = "SmoothSlider"
+SmoothSlider.Size = UDim2.new(0.8, 0, 0, 20)
+SmoothSlider.Position = UDim2.new(0.1, 0, 0.62, 0)
+SmoothSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SmoothSlider.Text = ""
+SmoothSlider.Parent = MainFrame
+
+local SmoothFill = Instance.new("Frame")
+SmoothFill.Name = "SmoothFill"
+SmoothFill.Size = UDim2.new(0.5, 0, 1, 0)
+SmoothFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+SmoothFill.BorderSizePixel = 0
+SmoothFill.Parent = SmoothSlider
+
+local SmoothCorner = Instance.new("UICorner")
+SmoothCorner.CornerRadius = UDim.new(0, 4)
+SmoothCorner.Parent = SmoothSlider
+
+local DistanceLabel = Instance.new("TextLabel")
+DistanceLabel.Name = "DistanceLabel"
+DistanceLabel.Size = UDim2.new(0.8, 0, 0, 25)
+DistanceLabel.Position = UDim2.new(0.1, 0, 0.7, 0)
+DistanceLabel.BackgroundTransparency = 1
+DistanceLabel.Text = "مدى الاستهداف: 400 متر"
+DistanceLabel.TextColor3 = Color3.new(1, 1, 1)
+DistanceLabel.Font = Enum.Font.Gotham
+DistanceLabel.TextSize = 14
+DistanceLabel.TextXAlignment = Enum.TextXAlignment.Left
+DistanceLabel.Parent = MainFrame
+
+-- متغيرات النظام
+local isUIOpen = false
+local isDragging = false
+local dragStartPos, frameStartPos
+local isNightVisionActive = false
+local isAimBotActive = false
+local lastMemoryClean = os.clock()
+local nightVisionLoop = nil
+local aimBotConnection = nil
+local aimCircleFrame = nil
+local smoothness = 0.05 -- سلاسة التصويب
+local maxDistance = 400 -- مدى الاستهداف بالأمتار
+local targetIndicator = nil -- مؤشر الهدف
+
+-- وظيفة السحب للهواتف
+local function handleTouchInput(input, processed)
+    if processed then return end
+    
+    if input.UserInputType == Enum.UserInputType.Touch then
+        local touchPos = input.Position
+        local circlePos = Circle.AbsolutePosition
+        local circleSize = Circle.AbsoluteSize
+        
+        -- التحقق إذا كانت اللمسة داخل الدائرة
+        if touchPos.X >= circlePos.X and touchPos.X <= circlePos.X + circleSize.X and
+           touchPos.Y >= circlePos.Y and touchPos.Y <= circlePos.Y + circleSize.Y then
+           
+            if input.UserInputState == Enum.UserInputState.Begin then
+                isDragging = true
+                dragStartPos = Vector2.new(touchPos.X, touchPos.Y)
+                frameStartPos = Circle.Position
+            elseif input.UserInputState == Enum.UserInputState.End then
+                isDragging = false
+                
+                -- تبديل حالة الواجهة عند النقر
+                isUIOpen = not isUIOpen
+                
+                -- تأثير التباين عند الفتح/الإغلاق
+                if isUIOpen then
+                    MainFrame.Size = UDim2.new(0, 0, 0, 0)
+                    MainFrame.Visible = true
+                    TweenService:Create(
+                        MainFrame,
+                        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+                        {Size = UDim2.new(0, 300, 0, 280)}
+                    ):Play()
+                else
+                    local closeTween = TweenService:Create(
+                        MainFrame,
+                        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+                        {Size = UDim2.new(0, 0, 0, 0)}
+                    )
+                    closeTween:Play()
+                    closeTween.Completed:Wait()
+                    MainFrame.Visible = false
+                end
+            end
+        end
+        
+        -- السحب أثناء الحركة
+        if isDragging and input.UserInputState == Enum.UserInputState.Change then
+            local delta = Vector2.new(touchPos.X, touchPos.Y) - dragStartPos
+            Circle.Position = UDim2.new(
+                frameStartPos.X.Scale,
+                frameStartPos.X.Offset + delta.X,
+                frameStartPos.Y.Scale,
+                frameStartPos.Y.Offset + delta.Y
+            )
+        end
+    end
+end
+
+-- تسجيل أحداث اللمس
+UserInputService.InputChanged:Connect(handleTouchInput)
+UserInputService.InputBegan:Connect(handleTouchInput)
+UserInputService.InputEnded:Connect(handleTouchInput)
+
+-- تخزين الإعدادات الأصلية
+local originalClockTime = Lighting.ClockTime
+local originalBrightness = Lighting.Brightness
+local originalAmbient = Lighting.Ambient
+local originalOutdoorAmbient = Lighting.OutdoorAmbient
+local originalColorShiftTop = Lighting.ColorShift_Top
+local originalColorShiftBottom = Lighting.ColorShift_Bottom
+local originalFogEnd = Lighting.FogEnd
+local originalFogStart = Lighting.FogStart
+
+-- نظام الرؤية الليلية المتطور مع التثبيت الدائم
+local function ApplyNightVision()
+    -- تفعيل تأثير الرؤية الليلية المتطور
+    Lighting.ClockTime = 14 -- تثبيت الوقت على 2 ظهراً
+    Lighting.Brightness = 2
+    Lighting.Ambient = Color3.new(1, 1, 1)
+    Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+    Lighting.ColorShift_Top = Color3.new(0, 0, 0)
+    Lighting.ColorShift_Bottom = Color3.new(0, 0, 0)
+    Lighting.FogEnd = 100000 -- إزالة الضباب
+    Lighting.FogStart = 0
+    
+    -- تحديث الواجهة
+    NightVisionButton.Text = "تريد تشوف بليل؟: مفعل"
+    NightVisionButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+end
+
+-- تفعيل/إلغاء الرؤية الليلية
+NightVisionButton.Activated:Connect(function()
+    isNightVisionActive = not isNightVisionActive
+    
+    if isNightVisionActive then
+        NightVisionButton.Text = "جار التفعيل..."
+        
+        -- إيقاف أي حلقة سابقة إن وجدت
+        if nightVisionLoop then
+            nightVisionLoop:Disconnect()
+            nightVisionLoop = nil
+        end
+        
+        -- تطبيق الرؤية الليلية فوراً
+        ApplyNightVision()
+        
+        -- بدء حلقة التحديث المستمر لتثبيت الإعدادات
+        nightVisionLoop = RunService.Heartbeat:Connect(function()
+            ApplyNightVision()
+            task.wait(5) -- تحديث كل 5 ثوانٍ
+        end)
+    else
+        -- إيقاف حلقة التحديث
+        if nightVisionLoop then
+            nightVisionLoop:Disconnect()
+            nightVisionLoop = nil
+        end
+        
+        -- إعادة الإعدادات الأصلية
+        Lighting.ClockTime = originalClockTime
+        Lighting.Brightness = originalBrightness
+        Lighting.Ambient = originalAmbient
+        Lighting.OutdoorAmbient = originalOutdoorAmbient
+        Lighting.ColorShift_Top = originalColorShiftTop
+        Lighting.ColorShift_Bottom = originalColorShiftBottom
+        Lighting.FogEnd = originalFogEnd
+        Lighting.FogStart = originalFogStart
+        
+        NightVisionButton.Text = "تريد تشوف بليل ؟: غير مفعل"
+        NightVisionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    end
+end)
+
+-- نظام دائرة التصويب الدقيقة
+local function CreateAimCircle()
+    -- إنشاء واجهة بديلة للدائرة
+    local circleGui = Instance.new("ScreenGui")
+    circleGui.Name = "AimCircleGui"
+    circleGui.ResetOnSpawn = false
+    circleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    circleGui.Parent = PlayerGui
+
+    local circleFrame = Instance.new("Frame")
+    circleFrame.Name = "AimCircle"
+    circleFrame.Size = UDim2.new(0, 150, 0, 150) -- حجم أصغر (150x150)
+    circleFrame.Position = UDim2.new(0.5, -75, 0.5, -75) -- مركز الشاشة
+    circleFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    circleFrame.BackgroundTransparency = 1
+    circleFrame.BorderSizePixel = 0
+    circleFrame.ZIndex = 5
+    circleFrame.Parent = circleGui
+
+    -- جعل الإطار دائري
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = circleFrame
+
+    -- إضافة حدود للدائرة
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 255, 255) -- أبيض
+    stroke.Thickness = 2
+    stroke.Transparency = 0.4 -- شفافية 60%
+    stroke.Parent = circleFrame
+
+    return circleGui
+end
+
+-- مؤشر الهدف
+local function CreateTargetIndicator()
+    local indicator = Instance.new("Frame")
+    indicator.Name = "TargetIndicator"
+    indicator.Size = UDim2.new(0, 10, 0, 10)
+    indicator.AnchorPoint = Vector2.new(0.5, 0.5)
+    indicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    indicator.BorderSizePixel = 0
+    indicator.ZIndex = 6
+    indicator.Visible = false
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = indicator
+    
+    indicator.Parent = PlayerGui
+    return indicator
+end
+
+-- تحديد أقرب هدف داخل الدائرة
+local function GetClosestTarget()
+    local closestTarget = nil
+    local closestDistance = 75 -- نصف قطر الدائرة
+    local playerPosition = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not playerPosition then return nil end
+    
+    -- مسح جميع النماذج في workspace
+    for _, model in ipairs(Workspace:GetDescendants()) do
+        -- التحقق إذا كان النموذج يحتوي على Humanoid و Head
+        if model:IsA("Model") and model:FindFirstChild("Humanoid") and model:FindFirstChild("Head") then
+            -- استبعاد اللاعبين الحقيقيين (التركيز على الزومبي)
+            if not Players:GetPlayerFromCharacter(model) then
+                local humanoid = model.Humanoid
+                local head = model.Head
+                
+                -- التحقق إذا كان الزومبي على قيد الحياة
+                if humanoid.Health > 0 then
+                    -- حساب المسافة إلى اللاعب
+                    local distance = (head.Position - playerPosition.Position).Magnitude
+                    
+                    -- التحقق من المدى المسموح (400 متر)
+                    if distance <= maxDistance then
+                        -- حساب موضع الرأس على الشاشة
+                        local headScreenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+                        
+                        if onScreen then
+                            local screenPos = Vector2.new(headScreenPos.X, headScreenPos.Y)
+                            local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                            local distanceToCenter = (center - screenPos).Magnitude
+                            
+                            -- التحقق إذا كان الهدف داخل الدائرة وأقرب هدف
+                            if distanceToCenter <= 75 and (not closestTarget or distanceToCenter < closestDistance) then
+                                closestDistance = distanceToCenter
+                                closestTarget = head
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    return closestTarget
+end
+
+-- تفعيل/إلغاء التصويب التلقائي
+AimBotButton.Activated:Connect(function()
+    isAimBotActive = not isAimBotActive
+    
+    if isAimBotActive then
+        AimBotButton.Text = "التصويب التلقائي: مفعل"
+        AimBotButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+        
+        -- إنشاء دائرة التصويب ومؤشر الهدف
+        aimCircleFrame = CreateAimCircle()
+        targetIndicator = CreateTargetIndicator()
+        
+        -- بدء نظام التصويب
+        aimBotConnection = RunService.RenderStepped:Connect(function()
+            -- البحث عن أقرب هدف (زومبي)
+            local targetHead = GetClosestTarget()
+            
+            if targetHead then
+                -- توجيه الكاميرا نحو رأس الهدف بسلاسة
+                local currentCFrame = Camera.CFrame
+                local targetPosition = targetHead.Position
+                local direction = (targetPosition - currentCFrame.Position).Unit
+                local targetCFrame = CFrame.new(currentCFrame.Position, currentCFrame.Position + direction)
+                
+                Camera.CFrame = currentCFrame:Lerp(targetCFrame, smoothness)
+                
+                -- تحديث مؤشر الهدف
+                local headScreenPos, onScreen = Camera:WorldToViewportPoint(targetPosition)
+                if onScreen then
+                    targetIndicator.Position = UDim2.new(0, headScreenPos.X, 0, headScreenPos.Y)
+                    targetIndicator.Visible = true
+                else
+                    targetIndicator.Visible = false
+                end
+            else
+                -- إخفاء مؤشر الهدف إذا لم يكن هناك هدف
+                if targetIndicator then
+                    targetIndicator.Visible = false
+                end
+            end
+        end)
+    else
+        AimBotButton.Text = "التصويب التلقائي: غير مفعل"
+        AimBotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        
+        -- إيقاف نظام التصويب
+        if aimBotConnection then
+            aimBotConnection:Disconnect()
+            aimBotConnection = nil
+        end
+        
+        -- إزالة دائرة التصويب ومؤشر الهدف
+        if aimCircleFrame then
+            aimCircleFrame:Destroy()
+            aimCircleFrame = nil
+        end
+        if targetIndicator then
+            targetIndicator:Destroy()
+            targetIndicator = nil
+        end
+    end
+end)
+
+-- تحديث شريط سلاسة التصويب
+SmoothSlider.MouseButton1Down:Connect(function()
+    local mouseX = UserInputService:GetMouseLocation().X
+    local sliderAbsPos = SmoothSlider.AbsolutePosition.X
+    local sliderWidth = SmoothSlider.AbsoluteSize.X
+    local relativeX = math.clamp(mouseX - sliderAbsPos, 0, sliderWidth)
+    
+    local fillRatio = relativeX / sliderWidth
+    SmoothFill.Size = UDim2.new(fillRatio, 0, 1, 0)
+    
+    -- تحديث قيمة السلاسة (0.01 إلى 0.2)
+    smoothness = 0.01 + (fillRatio * 0.19)
+    SmoothLabel.Text = string.format("سلاسة التصويب: %.2f", smoothness)
+end)
+
+-- منظف ذاكرة متطور (لا يؤثر على الوظائف)
+local function SmartMemoryCleaner()
+    while true do
+        task.wait(180) -- تنظيف الذاكرة كل 3 دقائق
+        
+        -- تجنب التنظيف أثناء تفعيل الميزات
+        if not isNightVisionActive and not isAimBotActive then
+            -- تنظيف الذاكرة فقط عندما لا تكون الميزات نشطة
+            collectgarbage("collect")
+            lastMemoryClean = os.clock()
+            
+            -- تنظيف إضافي آمن
+            for _, v in ipairs(PlayerGui:GetChildren()) do
+                if v:IsA("ScreenGui") and v.Name ~= "ZikerPreservationV9" then
+                    v:Destroy()
+                end
+            end
+        end
+    end
+end
+
+-- بدء منظف الذاكرة
+task.spawn(SmartMemoryCleaner)
+
+-- التأكد من إغلاق الواجهة عند إعادة البداية
+Player.CharacterAdded:Connect(function()
+    MainFrame.Visible = false
+    isUIOpen = false
+    
+    -- إعادة تعيين التصويب التلقائي
+    if isAimBotActive then
+        isAimBotActive = false
+        if aimBotConnection then
+            aimBotConnection:Disconnect()
+            aimBotConnection = nil
+        end
+        if aimCircleFrame then
+            aimCircleFrame:Destroy()
+            aimCircleFrame = nil
+        end
+        if targetIndicator then
+            targetIndicator:Destroy()
+            targetIndicator = nil
+        end
+        AimBotButton.Text = "ايم بوت لعيون زيكر الوصخ: غير مفعل"
+        AimBotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    end
+end)
+
+-- تحسينات للأداء على الهواتف
+RunService.Heartbeat:Connect(function()
+    if isDragging then
+        -- تقليل تحديثات السحب أثناء الحركة
+        task.wait(0.1)
+    end
+end)
+
+-- رسالة تفعيل
+print("تم تحميل سكربت زيكر للحفاظات | الإصدار 1.9")
+print("✅ نظام التصويب التلقائي محسّن!")
